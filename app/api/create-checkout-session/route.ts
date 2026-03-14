@@ -40,8 +40,8 @@ export async function POST(request: Request) {
           quantity: 1,
         },
       ],
-      // Card, Link, Apple Pay, Google Pay. Enable in Stripe Dashboard → Settings → Payment methods if not shown.
-      payment_method_types: ["card", "link", "apple_pay", "google_pay"] as Stripe.Checkout.SessionCreateParams["payment_method_types"],
+      // card = cards + Apple Pay/Google Pay (when enabled in Dashboard). link = Stripe Link.
+      payment_method_types: ["card", "link"],
       success_url: `${baseUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/onboarding?step=2`,
       subscription_data: {
