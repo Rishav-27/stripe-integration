@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { getOrCreateSubscriptionPriceId } from "@/lib/stripe-products";
 
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
     const priceId = await getOrCreateSubscriptionPriceId();
     const baseUrl = getBaseUrl(request);
 
-    const session = await stripe.checkout.sessions.create({
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: "subscription",
       customer: customerId,
       line_items: [
@@ -39,6 +40,8 @@ export async function POST(request: Request) {
           quantity: 1,
         },
       ],
+      // Card, Link, Apple Pay, Google Pay. Enable in Stripe Dashboard → Settings → Payment methods if not shown.
+      payment_method_types: ["card", "link", "apple_pay", "google_pay"] as Stripe.Checkout.SessionCreateParams["payment_method_types"],
       success_url: `${baseUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/onboarding?step=2`,
       subscription_data: {
@@ -47,7 +50,9 @@ export async function POST(request: Request) {
         },
       },
       allow_promotion_codes: true,
-    });
+    };
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     if (!session.url) {
       return NextResponse.json(
